@@ -1,0 +1,14 @@
+Metric,Strategy,Benchmark,Excess,Category
+Total Return,-0.70%,-,-,Returns
+Annualized Return,-0.09%,-,-,Returns
+Annualized Volatility,0.77%,-,-,Risk
+Sharpe Ratio,-0.11,-,-,Risk-Adjusted
+Max Drawdown,-1.82%,-,-,Risk
+Win Rate,1.6%,-,-,Consistency
+Information Ratio,-0.75,-,-,Risk-Adjusted
+Number of Trades,2,-,-,Activity
+Avg Holding Period,46,-,-,Activity
+COVID-19,0.1%,-35.2%,35.3%,Crisis Performance
+Ukraine Invasion,0.0%,6.7%,-6.6%,Crisis Performance
+Iran-Israel,0.0%,-4.0%,4.0%,Crisis Performance
+Liberation Day,0.0%,-2.6%,2.6%,Crisis Performance
