@@ -25,7 +25,6 @@ class SectorRotationBacktest:
     def run(self, signal, sector_returns, benchmark_returns=None):
         """
         Execute the strategy.
-        
         Returns DataFrame with strategy performance and trade log.
         """
         # Align data
@@ -48,9 +47,10 @@ class SectorRotationBacktest:
         for i, date in enumerate(common_idx):
             sig_val = signal.loc[date, 'smooth']
             
-            # Monthly evaluation (first of month only - reduces noise)
-            if i > 0 and date.month != common_idx[i-1].month:
-                
+            # Check if this is the first trading day of a new month
+            is_month_start = (i == 0) or (date.month != common_idx[i-1].month)
+            
+            if is_month_start:
                 # Entry logic
                 if not in_position and sig_val > self.entry_threshold:
                     in_position = True
@@ -63,18 +63,18 @@ class SectorRotationBacktest:
                 # Exit logic
                 elif in_position and sig_val < self.exit_threshold:
                     in_position = False
+                    days_held = (date - entry_date).days if entry_date else 0
                     trade_log.append({
                         'date': date, 'action': 'EXIT',
                         'signal': sig_val, 'reason': 'Signal reversion',
-                        'days_held': (date - entry_date).days
+                        'days_held': days_held
                     })
             
             results.loc[date, 'in_position'] = in_position
             
             # Calculate daily return if in position
             if in_position:
-                # Short growth sectors, long defensive sectors
-                daily_ret = 0
+                daily_ret = 0.0
                 for sector in self.sell_sectors:
                     if sector in sector_returns.columns:
                         daily_ret -= 0.05 * sector_returns.loc[date, sector]
@@ -88,10 +88,11 @@ class SectorRotationBacktest:
         results['strategy_return'] = strategy_returns
         results['cumulative_return'] = (1 + strategy_returns).cumprod()
         
-        # Benchmark comparison (equal-weight sector portfolio)
+        # Benchmark comparison
         if benchmark_returns is None:
             all_sectors = self.sell_sectors + self.buy_sectors
-            benchmark_returns = sector_returns[all_sectors].mean(axis=1)
+            available = [s for s in all_sectors if s in sector_returns.columns]
+            benchmark_returns = sector_returns[available].mean(axis=1)
         
         results['benchmark_return'] = benchmark_returns
         results['benchmark_cumulative'] = (1 + benchmark_returns).cumprod()
@@ -100,16 +101,41 @@ class SectorRotationBacktest:
         self.results = results
         self.trade_log = pd.DataFrame(trade_log)
         
+        # Print trade summary
+        if len(self.trade_log) > 0:
+            entries = self.trade_log[self.trade_log['action'] == 'ENTRY']
+            exits = self.trade_log[self.trade_log['action'] == 'EXIT']
+            print(f"\n  Trades: {len(entries)} entries, {len(exits)} exits")
+        else:
+            print(f"\n  ⚠ No trades executed — signal never crossed entry threshold")
+            print(f"    Check: entry_threshold={self.entry_threshold}")
+            print(f"    Signal max: {signal['smooth'].max():.2f}")
+        
         return results
     
     def get_metrics(self):
         """Calculate key performance metrics."""
         rets = self.results['strategy_return'].dropna()
+        
+        if len(rets) == 0 or rets.std() == 0:
+            return {
+                'Total Return': '0.00%',
+                'Annualized Return': '0.00%',
+                'Annualized Volatility': '0.00%',
+                'Sharpe Ratio': '0.00',
+                'Max Drawdown': '0.00%',
+                'Win Rate': '0.0%',
+                'Information Ratio': '0.00',
+                'Number of Trades': 0,
+                'Avg Holding Period (days)': '0'
+            }
+        
         bench_rets = self.results['benchmark_return'].dropna()
         
         # Returns
         total_ret = (1 + rets).prod() - 1
-        ann_ret = (1 + total_ret) ** (252 / len(rets)) - 1
+        years = len(rets) / 252
+        ann_ret = (1 + total_ret) ** (1 / max(years, 0.01)) - 1
         ann_vol = rets.std() * np.sqrt(252)
         
         # Risk-adjusted
@@ -122,17 +148,18 @@ class SectorRotationBacktest:
         max_dd = drawdown.min()
         
         # Win rate
-        win_rate = (rets > 0).mean()
+        win_rate = (rets > 0).mean() if len(rets) > 0 else 0
         
         # Information ratio
         excess = self.results['excess_return'].dropna()
-        ir = (excess.mean() / excess.std()) * np.sqrt(252) if excess.std() > 0 else 0
+        ir = (excess.mean() / excess.std()) * np.sqrt(252) if len(excess) > 0 and excess.std() > 0 else 0
         
         # Trade statistics
-        n_trades = len(self.trade_log[self.trade_log['action'] == 'ENTRY'])
-        avg_holding = self.trade_log[
-            self.trade_log['action'] == 'EXIT'
-        ]['days_held'].mean() if n_trades > 0 else 0
+        n_trades = len(self.trade_log[self.trade_log['action'] == 'ENTRY']) if len(self.trade_log) > 0 else 0
+        
+        # Average holding period
+        exits = self.trade_log[self.trade_log['action'] == 'EXIT'] if len(self.trade_log) > 0 else pd.DataFrame()
+        avg_holding = exits['days_held'].mean() if len(exits) > 0 and 'days_held' in exits.columns else 0
         
         return {
             'Total Return': f'{total_ret:.2%}',
