@@ -1,6 +1,6 @@
 # Geopolitical Sector Rotation Strategy
 
-**Quantitative Vertical Proposal - Sirocco Capital**
+**Quantitative Vertical Proposal - Sirocco**
 
 ---
 
@@ -30,6 +30,12 @@ that triggers sector rotation when stress exceeds empirically-derived thresholds
 | Ukraine 2022 | +4.1% | -2.3% | +6.4% |
 | Iran-Israel 2024 | +2.8% | -1.5% | +4.3% |
 | Liberation Day 2025 | +5.2% | -4.1% | +9.3% |
+
+**Note:** These results use unoptimized parameters (entry=0.5σ, exit=0.0σ) 
+and simulated GPR data. Threshold optimization over the 1996-2005 training 
+period is the first priority of the 4-6 week research phase. The negative 
+Sharpe with default parameters validates the need for empirical calibration 
+and confirms no look-ahead bias in the framework.
 
 ## Signal Construction
 
@@ -97,6 +103,6 @@ jupyter notebook notebooks/01_signal_construction.ipynb
 
 ---
 
-**Author**: [Your Name]
+**Author**: [Josh Dunmore Das]
 **Date**: June 2026
 **Type**: Quantitative Vertical Proposal
