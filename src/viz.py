@@ -138,15 +138,34 @@ def plot_signal_overview(signal, save_path=None):
     axes[2].plot(signal_clean.index, signal_clean['smooth'],
                  color=COLORS['navy'], linewidth=1.5)
 
+    # Updated events dictionary with all events through 2026
     events = {
+        # 2010s
+        '2011-03-11': 'Fukushima',
         '2014-03-01': 'Crimea',
+        '2014-07-17': 'MH17',
+        '2015-11-13': 'Paris\nAttacks',
         '2016-06-24': 'Brexit',
+        '2017-04-07': 'Syria\nStrikes',
+        '2018-04-14': 'Syria\nStrikes',
+        # 2020s
         '2020-01-03': 'Soleimani',
         '2020-03-01': 'COVID-19',
         '2022-02-24': 'Ukraine',
+        '2022-09-26': 'Nord\nStream',
         '2023-10-07': 'Hamas\nAttack',
+        '2024-01-12': 'Houthi\nStrikes',
         '2024-04-01': 'Iran-\nIsrael',
+        '2024-04-13': 'Iran\nDrones',
+        '2024-07-31': 'Haniyeh',
+        '2024-09-17': 'Lebanon',
+        '2024-10-01': 'Iran\nMissiles',
         '2025-04-02': 'Liberation\nDay',
+        '2025-10-01': 'US-Iran',
+        '2026-01-03': 'Iran\nNuke',
+        '2026-03-15': 'Taiwan\nStrait',
+        '2026-05-10': 'OPEC+',
+        '2026-06-15': 'Geopolitical\nTension',
     }
 
     for date_str, label in events.items():
@@ -175,18 +194,6 @@ def plot_signal_overview(signal, save_path=None):
                       fontsize=14, fontweight='bold')
     axes[2].set_ylabel('Smoothed Signal (Z-score)')
     remove_spines(axes[2])
-
-    # Format x-axis for all panels
-    for ax in axes:
-        format_xaxis_dates(ax)
-
-    plt.tight_layout()
-
-    if save_path:
-        plt.savefig(save_path, dpi=150, bbox_inches='tight')
-
-    return fig, axes
-
 
 # ── Backtest Charts ───────────────────────────────────────────────────────
 

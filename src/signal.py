@@ -1,3 +1,4 @@
+# src/signal.py
 """
 Geopolitical Risk Signal Construction
 Core intellectual property: Composite signal from GPR + VIX + FTQ proxies
